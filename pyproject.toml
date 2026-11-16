@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "livraison-express"
+version = "1.0.0"
+description = "Prédiction d'éligibilité à la livraison express (industrialisation d'un notebook ML)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+dynamic = ["dependencies"]
+
+[project.scripts]
+livraison-express = "livraison_express.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+# Le notebook est l'artefact historique fourni : il reste identique à l'original.
+# erp/ : simulateur fourni par l'intervenant (système externe), conservé tel quel.
+extend-exclude = ["notebooks", "erp"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP", "N", "SIM"]
+ignore = ["N803", "N806"]  # X_train / X_test : convention scikit-learn
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+  "integration: tests nécessitant une vraie base MongoDB (variable MONGO_URI)",
+]
+addopts = "-ra"

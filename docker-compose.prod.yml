@@ -1,0 +1,90 @@
+# Environnement de PRODUCTION (séance 4).
+#
+#   cp .env.prod.example .env.prod   # puis renseigner les secrets (hors Git)
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+#
+# Différences avec le test :
+#  - image publiée et versionnée (ghcr.io), jamais construite sur le serveur ;
+#  - MongoDB avec authentification et comptes à privilèges minimaux (ADR-0004) ;
+#  - aucune base exposée sur l'hôte, API seulement sur 127.0.0.1 (derrière le reverse proxy) ;
+#  - conteneurs en lecture seule, sans capacités Linux, non-root ;
+#  - données persistées dans des volumes.
+name: livraison-express-prod
+
+x-app: &app
+  image: ghcr.io/${GITHUB_OWNER:?GITHUB_OWNER requis}/livraison-express:${APP_VERSION:?APP_VERSION requis}
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  environment:
+    ENVIRONMENT: prod
+    LOG_LEVEL: WARNING
+    ORDER_REPOSITORY_URL: mongodb://${MONGO_APP_USERNAME:?}:${MONGO_APP_PASSWORD:?}@mongodb:27017/livraison_express?authSource=livraison_express
+    MONGO_DATABASE: livraison_express
+    MODEL_PATH: /app/artifacts/express_delivery_model.joblib
+    MODEL_THRESHOLD: ${MODEL_THRESHOLD:-0.5}
+    RETRAIN_MIN_NEW_ORDERS: ${RETRAIN_MIN_NEW_ORDERS:-500}
+    RETRAIN_CHECK_INTERVAL_SECONDS: ${RETRAIN_CHECK_INTERVAL_SECONDS:-3600}
+  depends_on:
+    mongodb:
+      condition: service_healthy
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  api:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - model_artifacts:/app/artifacts:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  scheduler:
+    <<: *app
+    command: ["scheduler"]
+    volumes:
+      - model_artifacts:/app/artifacts
+    healthcheck:
+      disable: true
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+
+  mongodb:
+    # MongoDB 8 refuse de démarrer sur les noyaux Linux 6.19 à 7.0.13 (SERVER-121912) :
+    # 7.0 par défaut, surchargeable (ex. MONGO_IMAGE=docker.io/library/mongo:8).
+    image: ${MONGO_IMAGE:-docker.io/library/mongo:7.0}
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?}
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:?}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?}
+      MONGO_ETL_USERNAME: ${MONGO_ETL_USERNAME:?}
+      MONGO_ETL_PASSWORD: ${MONGO_ETL_PASSWORD:?}
+    volumes:
+      - mongo_data:/data/db
+      - ./erp/docker/mongo-init.js:/docker-entrypoint-initdb.d/01-users.js:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongo_data:
+  model_artifacts:
