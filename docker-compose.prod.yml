@@ -65,7 +65,7 @@ services:
           memory: 2G
 
   mongodb:
-    image: mongo:8
+    image: docker.io/library/mongo:8
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?}

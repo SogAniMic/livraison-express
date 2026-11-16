@@ -42,7 +42,7 @@ services:
       disable: true
 
   mongodb:
-    image: mongo:8
+    image: docker.io/library/mongo:8
     ports:
       - "${MONGO_PORT:-27017}:27017"
     tmpfs:
@@ -54,7 +54,7 @@ services:
       retries: 10
 
   postgres:
-    image: postgres:17-alpine
+    image: docker.io/library/postgres:17-alpine
     environment:
       POSTGRES_DB: livraison_express
       POSTGRES_USER: livraison
