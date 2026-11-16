@@ -92,6 +92,13 @@ cp .env.prod.example .env.prod   # renseigner les secrets (fichier ignoré par G
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
+> **Notes d'environnement**
+> - MongoDB 8 refuse de démarrer sur les noyaux Linux 6.19 à 7.0.13
+>   ([SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912)) : les fichiers compose
+>   utilisent `mongo:7.0` par défaut, surchargeable avec `MONGO_IMAGE=docker.io/library/mongo:8`.
+> - Les montages de fichiers portent l'option `:z` pour fonctionner sous SELinux (Fedora,
+>   RHEL) ; elle est sans effet ailleurs. Le tout fonctionne avec Docker comme avec Podman.
+
 L'image est construite en **multi-stage** : l'étape `test` exécute ruff et pytest pendant le
 build ; l'étape `prod` ne contient que le venv et le code (ni tests, ni `.env`, ni
 documentation), tourne avec l'utilisateur non-root `10001` et expose uniquement le port 8000.

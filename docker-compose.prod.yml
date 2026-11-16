@@ -65,7 +65,9 @@ services:
           memory: 2G
 
   mongodb:
-    image: mongo:8
+    # MongoDB 8 refuse de démarrer sur les noyaux Linux 6.19 à 7.0.13 (SERVER-121912) :
+    # 7.0 par défaut, surchargeable (ex. MONGO_IMAGE=docker.io/library/mongo:8).
+    image: ${MONGO_IMAGE:-docker.io/library/mongo:7.0}
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?}
@@ -76,7 +78,7 @@ services:
       MONGO_ETL_PASSWORD: ${MONGO_ETL_PASSWORD:?}
     volumes:
       - mongo_data:/data/db
-      - ./erp/docker/mongo-init.js:/docker-entrypoint-initdb.d/01-users.js:ro
+      - ./erp/docker/mongo-init.js:/docker-entrypoint-initdb.d/01-users.js:ro,z
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1"]
       interval: 10s

@@ -6,7 +6,7 @@
 ARG PYTHON_VERSION=3.13
 
 # ---------------------------------------------------------------- builder
-FROM python:${PYTHON_VERSION}-slim AS builder
+FROM docker.io/library/python:${PYTHON_VERSION}-slim AS builder
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 RUN python -m venv /opt/venv
@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt \
  && pip uninstall -y -q pip setuptools 2>/dev/null || true
 
 # ---------------------------------------------------------------- test
-FROM python:${PYTHON_VERSION}-slim AS test
+FROM docker.io/library/python:${PYTHON_VERSION}-slim AS test
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PATH="/opt/venv/bin:$PATH"
 RUN python -m venv /opt/venv
 WORKDIR /app
@@ -33,7 +33,7 @@ RUN ruff check src tests && pytest -q -m "not integration"
 CMD ["pytest", "-q"]
 
 # ---------------------------------------------------------------- prod
-FROM python:${PYTHON_VERSION}-slim AS prod
+FROM docker.io/library/python:${PYTHON_VERSION}-slim AS prod
 ARG VERSION=dev
 ARG REVISION=unknown
 LABEL org.opencontainers.image.title="livraison-express" \
