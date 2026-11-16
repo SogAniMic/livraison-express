@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Outils
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets et configuration locale : jamais sur GitHub
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# Artefacts produits à l'exécution (régénérés par `python -m livraison_express train`)
+artifacts/
+notebooks/artifacts/
+mlruns/
+*.joblib
+
+# Éditeurs et OS
+.idea/
+.vscode/
+.DS_Store
