@@ -1,7 +1,7 @@
 # livraison-express
 
-[![CI](https://github.com/OWNER/livraison-express/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/livraison-express/actions/workflows/ci.yml)
-[![Release](https://github.com/OWNER/livraison-express/actions/workflows/release.yml/badge.svg)](https://github.com/OWNER/livraison-express/actions/workflows/release.yml)
+[![CI](https://github.com/SogAniMic/livraison-express/actions/workflows/ci.yml/badge.svg)](https://github.com/SogAniMic/livraison-express/actions/workflows/ci.yml)
+[![Release](https://github.com/SogAniMic/livraison-express/actions/workflows/release.yml/badge.svg)](https://github.com/SogAniMic/livraison-express/actions/workflows/release.yml)
 ![Python](https://img.shields.io/badge/python-3.13-blue)
 ![Licence](https://img.shields.io/badge/licence-MIT-green)
 

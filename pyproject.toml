@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "livraison-express"
-version = "1.0.0"
+version = "1.0.1"
 description = "Prédiction d'éligibilité à la livraison express (industrialisation d'un notebook ML)"
 readme = "README.md"
 license = { file = "LICENSE" }
