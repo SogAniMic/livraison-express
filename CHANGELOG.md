@@ -6,6 +6,11 @@ versions : [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-16
+
+### Fixed
+- Liens du README (badges CI/Release) et du CHANGELOG pointant vers le dépôt GitHub réel.
+
 ## [1.0.0] - 2026-10-29
 Première version livrée : le notebook est transformé en application de production.
 
@@ -35,5 +40,6 @@ Première version livrée : le notebook est transformé en application de produc
   imports `src.…` supprimés ; `requirements.txt` réencodé en UTF-8 et limité aux dépendances
   d'exécution (MLflow et `pywin32` retirés de l'image).
 
-[Unreleased]: https://github.com/OWNER/livraison-express/compare/v1.0.0...develop
-[1.0.0]: https://github.com/OWNER/livraison-express/releases/tag/v1.0.0
+[Unreleased]: https://github.com/SogAniMic/livraison-express/compare/v1.0.1...develop
+[1.0.1]: https://github.com/SogAniMic/livraison-express/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/SogAniMic/livraison-express/releases/tag/v1.0.0
