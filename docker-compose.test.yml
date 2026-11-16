@@ -42,7 +42,9 @@ services:
       disable: true
 
   mongodb:
-    image: docker.io/library/mongo:8
+    # MongoDB 8 refuse de démarrer sur les noyaux Linux 6.19 à 7.0.13 (SERVER-121912) :
+    # 7.0 par défaut, surchargeable (ex. MONGO_IMAGE=docker.io/library/mongo:8).
+    image: ${MONGO_IMAGE:-docker.io/library/mongo:7.0}
     ports:
       - "${MONGO_PORT:-27017}:27017"
     tmpfs:
@@ -62,7 +64,7 @@ services:
     tmpfs:
       - /var/lib/postgresql/data
     volumes:
-      - ./erp/docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./erp/docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro,z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U livraison -d livraison_express"]
       interval: 5s
