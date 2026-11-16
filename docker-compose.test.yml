@@ -1,0 +1,91 @@
+# Environnement de TEST (séance 4) : application + base choisie (MongoDB, ADR-0005).
+#
+#   docker compose -f docker-compose.test.yml up --build
+#
+# Données : échantillon contrôlé produit par le simulateur ERP de l'intervenant
+# (PostgreSQL = base de production simulée, MongoDB = base analytique alimentée en
+# temps réel). Rien n'est persisté : chaque lancement repart d'un état connu.
+name: livraison-express-test
+
+x-app: &app
+  build:
+    context: .
+    target: prod
+  image: livraison-express:test
+  environment: &app-env
+    ENVIRONMENT: test
+    LOG_LEVEL: INFO
+    ORDER_REPOSITORY_URL: mongodb://mongodb:27017
+    MONGO_DATABASE: livraison_express
+    MODEL_PATH: /app/artifacts/express_delivery_model.joblib
+    MIN_TRAINING_ROWS: 200
+    RETRAIN_MIN_NEW_ORDERS: 200
+    RETRAIN_CHECK_INTERVAL_SECONDS: 30
+  depends_on:
+    mongodb:
+      condition: service_healthy
+
+services:
+  api:
+    <<: *app
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - model_artifacts:/app/artifacts:ro
+
+  scheduler:
+    <<: *app
+    command: ["scheduler"]
+    volumes:
+      - model_artifacts:/app/artifacts
+    healthcheck:
+      disable: true
+
+  mongodb:
+    image: mongo:8
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: livraison_express
+      POSTGRES_USER: livraison
+      POSTGRES_PASSWORD: livraison
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./erp/docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livraison -d livraison_express"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  erp-simulator:
+    build:
+      context: ./erp
+      dockerfile: Dockerfile.erp-simulator
+    environment:
+      POSTGRES_DSN: postgresql://livraison:livraison@postgres:5432/livraison_express
+      MONGO_URI: mongodb://mongodb:27017
+      BATCH_SIZE: 20
+      INTERVAL_SECONDS: 5
+      POSTGRES_HISTORY_ORDERS: 500
+      RECENT_HISTORY_ORDERS: 2000
+      LIVE_ORDER_LIMIT: 0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  model_artifacts:
