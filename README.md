@@ -1,3 +1,5 @@
+**Michée SOGBOSSI** — M2 Data & IA, YNOV Toulouse
+
 # livraison-express
 
 [![CI](https://github.com/SogAniMic/livraison-express/actions/workflows/ci.yml/badge.svg)](https://github.com/SogAniMic/livraison-express/actions/workflows/ci.yml)
